@@ -13,6 +13,9 @@ from satellite_definition import *
 from snapshot_definition import *
 
 from snapshot_definition import Snapshot
+
+from create_list import*
+from crossmatch_halos import*
 #import ConfigParser
 
 
@@ -22,15 +25,21 @@ from snapshot_definition import Snapshot
         ##################################################
 
 def main ():
-        snapshot = Snapshot(530)
-        snapshot.load_stars()
-        snapshot.load_dm()
-        sat = rockstar_snapshot(15, 530, snapshot)
-        sat.read_halos_data()
-        sat.save_halos_info()
-        sat.save_ID_info()
-        sat.find_coordinates_by_IDs
+        if process_rockstar_snapshot ==1:
+                snapshot = Snapshot(620)
+                snapshot.load_stars()
+                snapshot.load_dm()
+                sat = rockstar_snapshot(43, 620)
+                sat.read_halos_data(snapshot)
+                sat.save_halos_info()
+                sat.save_ID_info()
+                sat.find_coordinates_by_IDs ()
+        if process_all_satellites ==1:
+                create_list()
+                crossmatch_halos()
+
 
 
 if __name__ == "__main__":
     main()
+    

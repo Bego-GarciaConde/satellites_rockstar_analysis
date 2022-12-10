@@ -8,6 +8,13 @@ path_datos = "/home/bego/GARROTXA_copia/datos_GARROTXA_resim/"
 path_csv =  "/mnt/usb-TOSHIBA_EXTERNAL_USB_20220124010088F-0:0-part2/snapshots_resim_new/"
 datos_edades = pd.read_csv(path_datos + "edades.csv", sep = ",",index_col = 0)
 
+path_rockstar_data = "/home/bego/GARROTXA/satellites_rockstar_analysis/results/"
+path_rockstar_tables = "/home/bego/GARROTXA/satellites_rockstar_analysis/satelites_tables/"
+#----This code operates in two modes----
+process_rockstar_snapshot = 0 #Takes a new snapshot of rockstar and gives the satellites data
+process_all_satellites = 0 #Takes all processed rockstar snapshots and identifies satellites, crossmatches them through all processed snapshots
+
+
 snapshots_analysis = [520,523,525, 527,530,532,535, 537,539,541,
 543, 545,547, 550, 553, 555,557, 
 560, 563, 565, 567,570,573, 575, 577, 580,

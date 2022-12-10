@@ -20,20 +20,21 @@ class rockstar_snapshot:
         self.lb = None
         self.halo_data = None
         self.dm_ID_list = None
+
       #  self.dm_ID_list = None
         
 
 
 
-        def read_lb(self):
+        def read_lb():
             self.lb = datos_edades.loc[datos_edades['Snapshot'] == self.name, 'Lookback'].iloc[0]
-        def read_center(self):
+        def read_center():
             centro = np.loadtxt(path_datos +f'center_{self.name}.txt')
             center = YTArray([centro[0], centro[1], centro[2]], "cm")
             self.center = center
 
 
-        def find_rotation_matrices (self):
+        def find_rotation_matrices ():
             self.mA =  np.loadtxt(path_datos + f"rotation_matrix/{name}_mA.txt")
             self.mB =  np.loadtxt(path_datos + f"rotation_matrix/{name}_mB.txt")
 
@@ -55,7 +56,7 @@ class rockstar_snapshot:
         Rvir = np.array(sp2["halos", "virial_radius"].in_units("kpc"))
         ID = np.array(sp2["halos", "particle_identifier"])
     
-        ind = np.where(mass>1e8)
+        ind = np.where((mass>1e6) &(mass<1e11))
 
         #Apply transformation matrices which situates in reference system of the galactic plane at z = 0
         x_re, y_re, z_re = apply_transformation_matrix(self.mA, x_pos[ind],y_pos[ind],z_pos[ind])
@@ -83,7 +84,7 @@ class rockstar_snapshot:
                 
         test_list = list(set(df_halos["new_ID"]))
         print(len(df_halos["new_ID"]),len(test_list))
-        df_index = []
+       # df_index = []
         #Discard the redundant halos
         for i,halo_id in enumerate(test_list):
     
@@ -94,10 +95,10 @@ class rockstar_snapshot:
             
             df_vacio = df_vacio.append(sg)
             df_vacio = df_vacio.sort_index( ascending = True)
-            df_index.append(i)
+        #    df_index.append(i)
 
-            df_vacio["index"]=np.array(df_index)
-            df_vacio.set_index("index", inplace=True)
+        df_vacio["index"]=np.arange(start=0, stop=len(df_vacio))
+        df_vacio.set_index("index", inplace=True)
 
         self.halo_data = df_vacio
 
@@ -113,14 +114,14 @@ class rockstar_snapshot:
             x_model, y_model, z_model  =self.halo_data.loc[self.halo_data['ID'] == halo_id, ['X', "Y", "Z"]].iloc[0]
             rvir_model = self.halo_data.loc[self.halo_data['ID'] == halo_id, "Rvir"].iloc[0]
             
-            ind = np.where(np.sqrt((snapshot.dm["X"]-x_model)**2  +(snapshot.dm["Y"]-y_model)**2+(snapshot.dm["Z"]-z_model)**2)<0.1*rvir_model)
+            ind = np.where(np.sqrt((snapshot.dm["X"]-x_model)**2  +(snapshot.dm["Y"]-y_model)**2+(snapshot.dm["Z"]-z_model)**2)<0.2*rvir_model)
             #print(len(ind))
             model = snapshot.dm.iloc[ind]
             print("This halo is located at ",x_model, y_model, z_model)
             print("number of particles, ",len(model))
             ID_dm_list[f"{halo_id}"]=np.array(model["ID"])
             
-            ind = np.where(np.sqrt((snapshot.stars["X"]-x_model)**2  +(snapshot.stars["Y"]-y_model)**2+(snapshot.stars["Z"]-z_model)**2)<0.1*rvir_model)
+            ind = np.where(np.sqrt((snapshot.stars["X"]-x_model)**2  +(snapshot.stars["Y"]-y_model)**2+(snapshot.stars["Z"]-z_model)**2)<0.2*rvir_model)
             model = snapshot.stars.iloc[ind]
             ID_stars_list[f"{halo_id}"]=np.array(model["ID"])
             star_mass.append(np.sum(model["Mass"]))
@@ -135,6 +136,8 @@ class rockstar_snapshot:
         self.halo_data.to_csv(f"results/DF_halos_{self.name}.csv")
 
     def save_ID_info (self):
+        for key, value in self.dm_ID_list.items():
+            self.dm_ID_list[key]=value.tolist()
         with open(f"results/halos_IDs_list_{self.name}.json", "w") as outfile:
             json.dump(self.dm_ID_list, outfile)
 
@@ -155,9 +158,9 @@ class rockstar_snapshot:
             for key, value in self.dm_ID_list.items():
                 dfA =snapshot.dm[snapshot.dm['ID'].isin(value)]
                 if len(dfA)> 0.5*len(value):
-                    x= np.mean(dfA["X"])
-                    y = np.mean(dfA["Y"])
-                    z = np.mean(dfA["Z"])
+                    x= np.median(dfA["X"])
+                    y = np.median(dfA["Y"])
+                    z = np.median(dfA["Z"])
                     r = np.sqrt(x*x + y*y + z*z)
 
                 else:
@@ -172,6 +175,7 @@ class rockstar_snapshot:
                 coordinates[f"{key}_Z"].append(z)
                 coordinates[f"{key}_R"].append(r)
                 
-        with open(f"results/coordinadas_de_halos_{self.name}.json", "w") as outfile:
+        with open(f"results/coordenadas_de_halos_{self.name}.json", "w") as outfile:
             json.dump(coordinates, outfile)
                 
+   
