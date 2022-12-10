@@ -37,6 +37,9 @@ def main ():
         if process_all_satellites ==1:
                 create_list()
                 crossmatch_halos()
+                list_of_halos =  pd.read_csv("satellites_rockstar_analysis/results/list_of_halos.csv")
+                datos_crossmatch = pd.read_csv( path_rockstar_data + "crossmatch_of_halos.csv", sep = ",")
+                create_tables_coordinates(list_of_halos, datos_crossmatch)
 
 
 

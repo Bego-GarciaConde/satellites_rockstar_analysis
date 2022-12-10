@@ -30,6 +30,13 @@ for i,snapshot in enumerate(snapshots_analysis):
     lb = datos_edades.loc[datos_edades['Snapshot'] == snapshot, 'Lookback'].iloc[0]
     lookback.append(lb)
 
+rocksana_snapshots = [620, 689, 720, 740, 805, 850,900, 910, 999]
+rocksana_snapshots_string = ["ID","620", "689","720" "740", "805", "850","900","910", "999"]
+#for i in rocksana_snapshots:
+#   rocksana_snapshots_string.append(str(i))
+rocksana_snapshots_re = rocksana_snapshots[::-1]  #reverso order from present to past
+print(rocksana_snapshots_re)
+
 class Rockstar:
     def __init__(self, name):
         self.name = name
@@ -54,12 +61,7 @@ class Rockstar:
 
         read_data()
 def create_list():         
-    rocksana_snapshots = [620, 689, 720, 740, 805, 850,900, 910, 999]
-    rocksana_snapshots_string = ["ID","620", "689","720" "740", "805", "850","900","910", "999"]
-    #for i in rocksana_snapshots:
-    #   rocksana_snapshots_string.append(str(i))
-    rocksana_snapshots_re = rocksana_snapshots[::-1]  #reverso order from present to past
-    print(rocksana_snapshots_re)
+
 
 
     halos_lista = [] #we will modify this list
@@ -212,3 +214,66 @@ def create_list():
 
 
     print(f"Definitive list of halos is {lista_definitiva}")
+
+def create_tables_coordinates(list_of_halos, datos_crossmatch):
+    for halo, corresp in zip(list_of_halos["ID"], list_of_halos["Snapshot"]):
+
+        print(f"analysing {halo} in{corresp}")
+        csv_dato_halo =  pd.DataFrame([], columns=['Snapshot',  "Lookback", "X","Y","Z","R", "Mass", "Mstars" ])
+        ind = np.digitize(snapshots_analysis, bins = rocksana_snapshots) -1
+        ind[ind < 0] = 0
+        halo_ref = Rockstar (int(corresp))
+        crossmatch = datos_crossmatch.loc[datos_crossmatch[f'{int(corresp)}'] == halo].iloc[0]
+
+        for i,name in enumerate(snapshots_analysis):
+
+            #print(name)
+            halo_ind = rocksana_snapshots[ind[i]]
+            halo_ind_loaded= Rockstar(int(halo_ind))
+
+            #key_crossmatch = crossmatch.loc[crossmatch[f'{int(halo_ind)}']].iloc[0]
+        # print(key_crossmatch)
+            key_crossmatch = crossmatch[f"{int(halo_ind)}"]
+            if np.isnan(key_crossmatch) == True:
+                cont = 0
+                #print(cont)
+                while np.isnan(key_crossmatch) == True:
+                    cont = cont +1
+                #   print(cont)
+                    try:
+                        key_crossmatch = crossmatch[f"{int(rocksana_snapshots[ind[i+cont]])}"]
+
+                    except:
+                        break
+
+            #    print(f"No hay datos en estos snapshots!")
+
+                try:    
+                    halo_ind_lolo = rocksana_snapshots[ind[i+cont]]
+                    halo_ind_loaded_lolo= Rockstar(int(halo_ind_lolo))
+                #  print(f"calculating mass! with {key_crossmatch} in {halo_ind_lolo}")
+                    #print(halo_ind_loaded_lolo.data)
+                    mass = halo_ind_loaded_lolo.data.loc[halo_ind_loaded_lolo.data['ID'] == key_crossmatch].iloc[0]["Mass"]
+                    mstars = halo_ind_loaded_lolo.data.loc[halo_ind_loaded_lolo.data['ID'] == key_crossmatch].iloc[0]["Mstars"]
+                #    print(mass, mstars)
+                except:
+                    mass= np.nan
+                    mstars =np.nan
+
+
+            else:
+                #print(f"calculating mass! with {key_crossmatch}")
+                mass = halo_ind_loaded.data.loc[halo_ind_loaded.data['ID'] == key_crossmatch].iloc[0]["Mass"]
+                mstars = halo_ind_loaded.data.loc[halo_ind_loaded.data['ID'] == key_crossmatch].iloc[0]["Mstars"]
+
+            #print(mass, mstars)
+            x = halo_ref.list_halos[f"{halo}_X"][i]
+            y = halo_ref.list_halos[f"{halo}_Y"][i]
+            z = halo_ref.list_halos[f"{halo}_Z"][i]
+            r = halo_ref.list_halos[f"{halo}_R"][i]
+
+            new_row = {'Snapshot':name,  "Lookback":lookback[i], "X":x,"Y":y,"Z":z,"R":r, "Mass":mass, "Mstars":mstars}
+
+            csv_dato_halo = csv_dato_halo.append(new_row, ignore_index = True)
+
+        csv_dato_halo.to_csv(path_rockstar_tables + f"{halo}.csv", index = 0)
