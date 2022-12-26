@@ -1,27 +1,9 @@
-
-
 import numpy as np
 import pandas as pd
-import yt
-import ytree
-import numpy as np
-import yt.utilities.physical_constants as constants
-from yt.mods import *
-from yt.units.yt_array import YTQuantity
-from yt.units import *
-from matplotlib import pyplot as plt
+
+
 import heapq
-from matplotlib.offsetbox import AnchoredText
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.axes_grid1 import AxesGrid
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib.gridspec
-from matplotlib.text import TextPath
-from matplotlib.transforms import Affine2D
-from matplotlib import rcParams
-from matplotlib.patches import Circle, PathPatch
-import itertools
-import matplotlib.colors as mcolors
+
 import json
 from config import*
 
@@ -59,7 +41,7 @@ class Rockstar:
 
 
 def  crossmatch_between_data ( df1, df2,namedf1,namedf2, df_halos):
-
+    """This function identifies the same halo in different snapshots by crossmatching particles"""
     for key in df1.data["ID"]:
         start = 2
         mass_stars =  df1.data.loc[ df1.data['ID'] == float(key), "Mstars"].iloc[0]
@@ -93,6 +75,8 @@ def  crossmatch_between_data ( df1, df2,namedf1,namedf2, df_halos):
                     df_halos.loc[key,f"{namedf2}"] = np.nan
 
 def crossmatch_halos():
+    """Takes rocksana snapshots one by one and compares"""
+
     halos_recompilation = []
 
     rocksana_snapshots = [620, 689, 720, 740, 805, 850,900, 910, 999]

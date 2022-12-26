@@ -1,25 +1,7 @@
 import numpy as np
 import pandas as pd
-import yt
-import ytree
-import numpy as np
-import yt.utilities.physical_constants as constants
-from yt.mods import *
-from yt.units.yt_array import YTQuantity
-from yt.units import *
-from matplotlib import pyplot as plt
 import heapq
-from matplotlib.offsetbox import AnchoredText
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.axes_grid1 import AxesGrid
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib.gridspec
-from matplotlib.text import TextPath
-from matplotlib.transforms import Affine2D
-from matplotlib import rcParams
-from matplotlib.patches import Circle, PathPatch
 import itertools
-import matplotlib.colors as mcolors
 import json
 from config import*
 
@@ -32,9 +14,8 @@ for i,snapshot in enumerate(snapshots_analysis):
 
 rocksana_snapshots = [620, 689, 720, 740, 805, 850,900, 910, 999]
 rocksana_snapshots_string = ["ID","620", "689","720" "740", "805", "850","900","910", "999"]
-#for i in rocksana_snapshots:
-#   rocksana_snapshots_string.append(str(i))
-rocksana_snapshots_re = rocksana_snapshots[::-1]  #reverso order from present to past
+
+rocksana_snapshots_re = rocksana_snapshots[::-1]  #reverse order from present to past
 print(rocksana_snapshots_re)
 
 class Rockstar:
@@ -60,10 +41,10 @@ class Rockstar:
 
 
         read_data()
-def create_list():         
 
-
-
+def create_list():    
+    """ Creates a table in which we can find the ID of halo and the snapshot were we found it
+    """     
     halos_lista = [] #we will modify this list
     halos_lista_ref = []
     for comp in rocksana_snapshots_re:
@@ -76,8 +57,6 @@ def create_list():
         dict_halos[f"{name}"]= i
     print(dict_halos)
 
-
-    contador = 0
     rocksana_i = np.delete(np.array(rocksana_snapshots_re), np.where(np.array(rocksana_snapshots_re) ==rocksana_snapshots_re[0]))
     for j,comp in enumerate(rocksana_snapshots_re):
         df1 =  Rockstar(comp)
@@ -88,8 +67,6 @@ def create_list():
         print(f"for snapshot {comp} ",rocksana_i)
         
         for i, name in enumerate (rocksana_i):
-            #df1 =rocksana[0]
-        # list_of_pairs[f"530"] = np.nan
             df2 =  Rockstar(name)
             for key in halos_lista_ref[j]:
                 start = 2
@@ -103,9 +80,6 @@ def create_list():
                 r =  np.array(df1.list_halos[f"{key}_R"])
                 mass_stars = halos_comp.data.loc[halos_comp.data['ID'] == float(key), "Mstars"].iloc[0]
                 for kk in df2.data["ID"]:
-                    
-                # print(f"comparing {key} in 530 and {kk} in 999 ")
-                #  if df2.list_halos[f"{kk}_R"][start] is not np.nan:
                     xx = df2.list_halos[f"{kk}_X"][start]
                     yy = df2.list_halos[f"{kk}_Y"][start]
                     zz = df2.list_halos[f"{kk}_Z"][start]
@@ -127,16 +101,16 @@ def create_list():
                             halos_lista[dict_halos[f"{name}"]] = np.delete(np.array(halos_lista[dict_halos[f"{name}"]]), np.where(np.array(halos_lista[dict_halos[f"{name}"]]) ==kk))
 
     dato_vacio = []
-    vetados = [433.0, 2050.0, 2055.0]
+    vetados = [433.0, 2050.0, 2055.0] #some halos that give problems
     list_of_halos = pd.DataFrame(dato_vacio, columns=['ID', 'Snapshot', "Mass","Mstars"])
+
     for i, halo in enumerate(halos_lista):
         halos_comp = Rockstar(rocksana_snapshots_re[i])
         for key in halo:
             print(f"saving halo {key} which is in snapshot {rocksana_snapshots_re[i]}")
             mass_stars = halos_comp.data.loc[halos_comp.data['ID'] == float(key), "Mstars"].iloc[0]
             mass = halos_comp.data.loc[halos_comp.data['ID'] == float(key), "Mass"].iloc[0]
-        #  new_row= [key,rocksana_snapshots_re[i], mass, mass_stars ]
-        # print(new_row)
+
             if key in vetados:
                 pass
             else:
@@ -149,20 +123,22 @@ def create_list():
     lista_definitiva = np.array(list_of_halos["ID"])
     IDs_ref = np.array(list_of_halos["ID"])
     print(len(lista_definitiva))
-    #IDs_ref =[435.0, 1418.0]
+
+
+    #To get the final list, we filter by orbit, since filtering by particle ID is not 100% accurate,
+    #since some halos are found twice with difference in Rvir. We take those with higher mass for the same halo
     for key in IDs_ref:
-    #key = 685.0
 
         tabla_halo1 = pd.read_csv(path_rockstar_tables + f"{key}.csv")
         x = np.array(tabla_halo1["X"])
         x[np.isnan(x)] = 200
-        #x = x[~np.isnan(x)]
+
         y = np.array(tabla_halo1["Y"])
         y[np.isnan(y)] = 200
-    #  y = y[~np.isnan(y)]
+
         z = np.array(tabla_halo1["Z"])
         z[np.isnan(z)] = 200
-    # z = z[~np.isnan(z)]
+
         for kk in IDs_ref:
             if key== kk:
                 pass
@@ -170,30 +146,27 @@ def create_list():
 
                 tabla_halo2 = pd.read_csv(path_rockstar_tables + f"{kk}.csv")
                 x2 = np.array(tabla_halo2["X"])
-            #  x2 = x2[~np.isnan(x2)]
-                x2[np.isnan(x2)] = 200
+                x2[np.isnan(x2)] = 200    #If the halo is too high in Rvir, we set its R to 200 kpc
                 y2 = np.array(tabla_halo2["Y"])
-            #  y2 = y2[~np.isnan(y2)]
                 y2[np.isnan(y2)] = 200
                 z2 = np.array(tabla_halo2["Z"])
                 z2[np.isnan(z2)] = 200
-                #z2 = z2[~np.isnan(z2)]
-                #if len(x) == len(x2):
+ 
                 if (np.mean(np.abs(x -x2))< 1) &(np.mean(np.abs(y -y2))< 1) &(np.mean(np.abs(z -z2))< 1):
                     print(f"coincidencia de {key} con {kk}!")
-                #  print(np.nanmean(tabla_halo2["Mass"]),np.nanmean(tabla_halo1["Mass"]) )
+
                     if np.nanmean(tabla_halo2["Mass"])> np.nanmean(tabla_halo1["Mass"]):
                         print(f"eliminar {key}")
                         if key in lista_definitiva:
                             lista_definitiva = lista_definitiva[lista_definitiva != key]
                             print(len(lista_definitiva))
-                        #  lista_definitiva.delete(key)
+    
                     elif np.nanmean(tabla_halo2["Mass"])< np.nanmean(tabla_halo1["Mass"]):
                         print(f"eliminar {kk}")
                         if kk in lista_definitiva:
                             lista_definitiva = lista_definitiva[lista_definitiva != kk]
                             print(len(lista_definitiva))
-                        # lista_definitiva = lista_definitiva.delete(kk)
+
                     elif np.nanmean(tabla_halo2["Mass"])== np.nanmean(tabla_halo1["Mass"]):
                         if kk<key:
                             if kk in lista_definitiva:
@@ -211,11 +184,14 @@ def create_list():
                     
                     pass
 
-
-
     print(f"Definitive list of halos is {lista_definitiva}")
+    with open('results/lista_definitiva.txt', 'w') as f:
+        for line in lista_definitiva:
+            f.write(f"{line}\n")
 
 def create_tables_coordinates(list_of_halos, datos_crossmatch):
+    """Creates a table of coordinates comparing the same halo with different snapshots in which it was found
+    """
     for halo, corresp in zip(list_of_halos["ID"], list_of_halos["Snapshot"]):
 
         print(f"analysing {halo} in{corresp}")
@@ -231,8 +207,6 @@ def create_tables_coordinates(list_of_halos, datos_crossmatch):
             halo_ind = rocksana_snapshots[ind[i]]
             halo_ind_loaded= Rockstar(int(halo_ind))
 
-            #key_crossmatch = crossmatch.loc[crossmatch[f'{int(halo_ind)}']].iloc[0]
-        # print(key_crossmatch)
             key_crossmatch = crossmatch[f"{int(halo_ind)}"]
             if np.isnan(key_crossmatch) == True:
                 cont = 0
@@ -249,12 +223,12 @@ def create_tables_coordinates(list_of_halos, datos_crossmatch):
             #    print(f"No hay datos en estos snapshots!")
 
                 try:    
-                    halo_ind_lolo = rocksana_snapshots[ind[i+cont]]
-                    halo_ind_loaded_lolo= Rockstar(int(halo_ind_lolo))
-                #  print(f"calculating mass! with {key_crossmatch} in {halo_ind_lolo}")
-                    #print(halo_ind_loaded_lolo.data)
-                    mass = halo_ind_loaded_lolo.data.loc[halo_ind_loaded_lolo.data['ID'] == key_crossmatch].iloc[0]["Mass"]
-                    mstars = halo_ind_loaded_lolo.data.loc[halo_ind_loaded_lolo.data['ID'] == key_crossmatch].iloc[0]["Mstars"]
+                    halo_ind_iteration = rocksana_snapshots[ind[i+cont]]
+                    halo_ind_loaded_iteration= Rockstar(int(halo_ind_iteration))
+                #  print(f"calculating mass! with {key_crossmatch} in {halo_ind_iteration}")
+                    #print(halo_ind_loaded_iteration.data)
+                    mass = halo_ind_loaded_iteration.data.loc[halo_ind_loaded_iteration.data['ID'] == key_crossmatch].iloc[0]["Mass"]
+                    mstars = halo_ind_loaded_iteration.data.loc[halo_ind_loaded_iteration.data['ID'] == key_crossmatch].iloc[0]["Mstars"]
                 #    print(mass, mstars)
                 except:
                     mass= np.nan

@@ -26,7 +26,7 @@ from crossmatch_halos import*
 
 def main ():
         if process_rockstar_snapshot ==1:
-                snapshot = Snapshot(620)
+                snapshot = Snapshot(620) #We indicate the snaphot
                 snapshot.load_stars()
                 snapshot.load_dm()
                 sat = rockstar_snapshot(43, 620)
@@ -40,8 +40,6 @@ def main ():
                 list_of_halos =  pd.read_csv("satellites_rockstar_analysis/results/list_of_halos.csv")
                 datos_crossmatch = pd.read_csv( path_rockstar_data + "crossmatch_of_halos.csv", sep = ",")
                 create_tables_coordinates(list_of_halos, datos_crossmatch)
-
-
 
 if __name__ == "__main__":
     main()
